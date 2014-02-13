@@ -7,6 +7,6 @@ Build-Depends: debhelper (>= 8)
 
 Package: nagios-plugins-ceph
 Architecture: all
-Depends: ${python:Depends}, ${misc:Depends}
+Depends: ${python:Depends}, ${misc:Depends}, radosgw
 Description: Nagios plugins for Ceph 
  This package provides a set of plugins to monitor a ceph cluster.

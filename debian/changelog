@@ -1,3 +1,9 @@
+nagios-plugins-ceph (1.2.1-1) unstable; urgency=low
+
+  * Added dependency on radosgw package 
+
+ -- Ricardo Rocha <ricardo@catalyst.net.nz>  Thu, 13 Feb 2013 16:17:42 +0100
+
 nagios-plugins-ceph (1.2.0-1) unstable; urgency=low
 
   * Upstream version 1.2.0
