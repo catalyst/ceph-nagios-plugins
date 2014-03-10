@@ -1,5 +1,8 @@
 Nagios plugins for Ceph
 -----------------------
+Version 1.2.2:
+* added warniserror option to ceph health
+
 Version 1.2.1:
 * added dep on radosgw.
 
