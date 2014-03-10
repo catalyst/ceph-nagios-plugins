@@ -42,6 +42,7 @@ def main():
     parser.add_argument('-k','--keyring', help='ceph client keyring file')
     parser.add_argument('-d','--detail', help="exec 'ceph health detail'", action='store_true')
     parser.add_argument('-V','--version', help='show version and exit', action='store_true')
+    parser.add_argument('-w','--warniserror', help='make health warn a nagios error', action='store_true')
     args = parser.parse_args()
    
     # validate args
@@ -102,7 +103,10 @@ def main():
             return STATUS_OK
         elif one_line.startswith('HEALTH_WARN'):
             print 'HEALTH WARNING:', one_line[len('HEALTH_WARN')+1:]
-            return STATUS_WARNING
+            if args.warniserror:
+              return STATUS_ERROR
+            else:
+              return STATUS_WARNING
         elif one_line.startswith('HEALTH_ERR'):
             print 'HEALTH ERROR:', one_line[len('HEALTH_ERR')+1:]
             return STATUS_ERROR
