@@ -2,3 +2,5 @@
 *.tar.gz
 *.deb
 /tmp/
+debian/nagios-plugins-ceph*
+debian/files
