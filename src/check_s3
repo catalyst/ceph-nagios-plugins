@@ -1,0 +1,95 @@
+#!/usr/bin/env python
+#
+#  Copyright (c) 2014 Catalyst IT http://www.catalyst.net.nz
+#
+#  Licensed under the Apache License, Version 2.0 (the "License");
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+#
+# Author: Ricardo Rocha <ricardo@catalyst.net.nz>
+#
+
+import argparse
+import os
+import re
+import subprocess
+import sys
+import traceback
+
+import boto
+import boto.s3.connection
+from boto.exception import S3ResponseError
+
+# nagios exit codes
+STATUS_OK = 0
+STATUS_WARNING = 1
+STATUS_CRITICAL = 2
+
+def check_s3_args():
+  """
+  Parse the arguments of this probe.
+  """
+  parser = argparse.ArgumentParser(
+    description='Lists the given test bucket and checks proper output')
+  parser.add_argument('-H', '--host', dest='host', type=str, action='store',
+    required=True, help='RGW host to query')
+  parser.add_argument('-P', '--port', dest='port', type=int, action='store',
+    default=8443, required=True, help='Port the radosgw is listening to')
+  parser.add_argument('-A', '--access-key', dest='access_key_id', type=str, action='store',
+    required=True, help='Access key id to use when contacting rgw')
+  parser.add_argument('-S', '--secret-key', dest='secret_access_key', type=str, action='store',
+    required=True, help='Secret key to use when contacting rgw')
+  parser.add_argument('-B', '--bucket', dest='bucket', type=str, action='store',
+    required=True, help='Test bucket name to use')
+  return parser
+
+def check_s3(args):
+  """
+  Checks the given test bucket is available.
+  """
+  conn = boto.connect_s3(aws_access_key_id=args.access_key_id,
+                         aws_secret_access_key=args.secret_access_key,
+			 host=args.host, port=args.port,
+                      	 calling_format=boto.s3.connection.OrdinaryCallingFormat())
+
+  # create a test bucket
+  try:
+    bucket = conn.create_bucket(args.bucket)
+  except Exception as exc:
+    print "ERROR: Failed to create test bucket :: %s" % args.bucket
+    return STATUS_CRITICAL
+
+  # check for bucket availability
+  try:
+    bucket = conn.get_bucket(args.bucket)
+    if bucket is None:
+      print "ERROR: Failed to get test bucket info :: %s" % args.bucket
+      return STATUS_CRITICAL
+
+    values = bucket.list()
+    print "OK: Listed bucket %s" % args.bucket
+    return STATUS_OK
+  except S3ResponseError as e:
+    print "ERROR: Failed to retrieve test bucket :: %s :: %s" % (
+      args.bucket, e)
+    return STATUS_CRITICAL
+
+  print "ERROR: Failed to proper fetch bucket info :: %s" % args.bucket
+  return STATUS_CRITICAL
+
+if __name__ == "__main__":
+  try:
+    args = check_s3_args().parse_args()
+    sys.exit(check_s3(args))
+  except Exception as e:
+    traceback.print_exc()
+    sys.exit(STATUS_CRITICAL)
+
