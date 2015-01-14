@@ -21,7 +21,7 @@ import re
 import subprocess
 import sys
 
-__version__ = '1.0.1'
+__version__ = '1.0.2'
 
 # default ceph values
 CEPH_COMMAND = '/usr/bin/ceph'
@@ -94,11 +94,15 @@ def main():
   output, err = p.communicate()
 
   if p.returncode != 0 or not output:
-    print "MON ERROR: %s :: %s" % (output, err)
+    print "MON ERROR: %s" % err
     return STATUS_ERROR
 
   # else we do our checks
-  up = re.match(".*%s.*mon\.%s.*" % (args.host.replace('.', '\.'), args.monid), output, re.DOTALL)
+  mon_host = args.host.replace('.', '\.')
+  # IPv6 host
+  mon_host = mon_host.replace('[', '\[')
+  mon_host = mon_host.replace(']', '\]')
+  up = re.match(".*%s.*mon\.%s.*" % (mon_host, args.monid), output, re.DOTALL)
 
   if up:
     print "MON OK"
